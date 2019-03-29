@@ -54,11 +54,11 @@ def main():
     print('Поиск завершен. Найдены следующие ссылки:')
 
     header = 'Название страницы, Оценка точности, URL-адрес \n'
-    with open(output_file,'w') as f:
-        f.write(header)
+    with open(output_file,'wb') as f:
+        f.write(header.encode('utf-8'))
         print(header)
         for line in results:
-            f.write(line)
+            f.write(line.encode('utf-8'))
             print(line)
 
     print('Все ссылки сохранены в файле {}'.format(output_file))
