@@ -1,5 +1,9 @@
 
 google_search_url = 'https://www.google.com/search?{}'\
+baidu_search_url
+
+#blacklist:
+#engines:
 
 google_search_params = {'q': ''}
                         #'as_epq': '',

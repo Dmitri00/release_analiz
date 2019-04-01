@@ -64,20 +64,79 @@ class GoogleResultGen:
         return self.urls
     def __next__(self):
         next(self.urls)
+class BaiduPager:
+    def __init__(self, html_page, pass_first=True):
+        self.url_base = 'https://www.baidu.com'
+        self.base_page = BeautifulSoup(html_page,'html.parser')
+        self.nav_table = self.base_page.find(id='page')
+        if self.nav_table != None:
+            a_tags_pagination = self.nav_table.findAll('a')[:-1]
+        else:
+            a_tags_pagination = []
+
+        a_tags = a_tags_pagination
+        # Поиск скрытых результатов
+        p_tag = self.base_page.find(id='ofr')
+        if p_tag != None:
+            a_tag_hidden = p_tag.findAll('a')
+            if a_tag_hidden != None:
+                print(a_tag_hidden)
+                a_tags.append(a_tag_hidden[0])
+                print('Просмотр скрытых результатов')
+        self.page_urls = iter(map(lambda x: self.url_base + x.attrs['href'], a_tags))
+
+    def __iter__(self):
+        return self.page_urls
+    def __next__(self):
+        if self.page_num < self.depth:
+            next(self.page_urls)
+        else:
+            raise StopIteration
+
+class BaiduResultGen:
+    def __init__(self, html_page):
+        self.url_base = 'https://www.google.com'
+        try:
+            self.base_page = BeautifulSoup(html_page,'html.parser')
+            href_blocks = self.base_page.findAll(class_='result')
+            if len(href_blocks) == 0:
+                raise ResulterError()
+            self.hrefs = list(map(lambda x: x.find('a').attrs['href'], href_blocks))
+            def tryconvert(href):
+                try:
+                    return urlparse.parse_qs(href)['/url?q'][0]
+                except KeyError:
+                    return ''
+            # У Baidu в теге <a> стоит полная липовая ссылка на сайт
+            self.urls = iter(self.hrefs)
+            #print(self.urls)
+            #self.urls = iter(map(lambda x: self.url_base + x.find('a').attrs['href'], self.base_page.findAll(class_='r')))
+            #self.page_num = 0
+            #self.depth = len(self.base_page.findAll('g'))
+        except TypeError:
+            self.urls = iter([])
+    def __iter__(self):
+        return self.urls
+    def __next__(self):
+        next(self.urls)
 
 class RequestGenerator:
-    def __init__(self, text):
+    def __init__(self, text,title='', hero='', institute=''):
+        self.requests = []
+        if hero != '' and institute != '':
+           self.requests.append(hero +' '+institute) 
         self.text = text.split('.')
         random.shuffle(self.text)
-        self.text = iter(self.text)
+        self.requests.append(self.text)
+        self.requests = iter(self.requests)
         self.current_ = 0
     def __iter__(self):
         return self
     def __next__(self):
         try:
-            sentence = next(self.text)
+            sentence = next(self.requests)
             while len(sentence) <= 10:
-                sentence = next(self.text)
+                sentence = next(self.requests)
         except StopIteration:
             raise StopIteration
         #return sentence
