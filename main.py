@@ -42,18 +42,18 @@ def main():
     timer.wait(3)
     for key,value in config['MAIN'].items():
         print(fields_definitions[key])
-        timer.wait(3)
+        timer.wait(0.2)
         print(value)
-        if not accept_key():
-            print('Завершение работы.')
-            return
+    if not accept_key():
+        print('Завершение работы.')
+        return
     print('Запуск поискового бота')
     timer.wait(3)
     results = run(**args)
 
     print('Поиск завершен. Найдены следующие ссылки:')
 
-    header = 'Название страницы, Оценка точности, URL-адрес \n'
+    header = 'Оценка точности, Название страницы, URL-адрес \n'
     with open(output_file,'w',encoding='utf-8') as f:
         f.write(header)
         print(header)
@@ -69,7 +69,7 @@ def run(article_title,article_text,article_url,article_doi,hero,institute,releas
     searcher = Searcher(article_text,hero,institute, search_depth=search_depth)
     dwld = Downloader()
     analyzer = Analyzer(article_title,article_text,article_url,article_doi,hero,institute)
-    result_count = 10
+    result_count = 150
     i = 0
     for url in searcher.gen():
         if url == '' or url == None:
