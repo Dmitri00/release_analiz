@@ -26,7 +26,7 @@ class GooglePager:
         if p_tag != None:
             a_tag_hidden = p_tag.findAll('a')
             if a_tag_hidden != None:
-                print(a_tag_hidden)
+                #print(a_tag_hidden)
                 a_tags.append(a_tag_hidden[0])
                 print('Просмотр скрытых результатов')
         self.page_urls = iter(map(lambda x: self.url_base + x.attrs['href'], a_tags))
@@ -123,13 +123,16 @@ class BaiduResultGen:
 class RequestGenerator:
     def __init__(self, text,title='', hero='', institute=''):
         self.requests = []
+        print(hero,institute)
         if hero != '' and institute != '':
            self.requests.append(hero +' '+institute) 
         self.text = text.split('.')
         random.shuffle(self.text)
-        self.requests.append(self.text)
+        self.requests.extend(self.text)
+        print(self.requests[0])
         self.requests = iter(self.requests)
         self.current_ = 0
+        
     def __iter__(self):
         return self
     def __next__(self):
@@ -177,7 +180,7 @@ class Downloader:
     def big_timeout(self):
         self.timer = self.invoke_timer(3*self.timeout)
         self.timer.start()
-    def download(self, url, use_proxy=False,use_agent=True,default_agent=False, timeout=5):
+    def download(self, url, use_proxy=False,use_agent=True,default_agent=False, timeout=5,accept_files=False):
         while self.timer.isAlive():
             pass
         session = requests.Session()
@@ -215,20 +218,22 @@ def build_url_request(phrase):
 
     
 class Searcher:
-    def __init__(self, article, search_engine_name='google', search_depth=3):
+    def __init__(self, article, hero='', institute='', search_engine_name='google', search_depth=3):
         if article == '':
             raise ArgumentError('Search phrase is empty')
         self.supported_engines = ['google']
         if search_engine_name not in self.supported_engines:
             raise ValueError('Search engine %s is not supported' % search_engine_name)
         self.search_engine_name = search_engine_name
-        self.keyword_builder = RequestGenerator(article)
+        print(hero,institute)
+        title = ''
+        self.keyword_builder = RequestGenerator(article, title, hero, institute)
         self.downloader = Downloader()
         self.search_depth = search_depth
     def start_request(self, phrase):
         try:
             search_url = build_url_request(phrase)
-            print(search_url)
+            #print(search_url)
             i = 0
             retry_count = 5
             page = self.downloader.download(search_url, use_proxy=False)
@@ -245,7 +250,7 @@ class Searcher:
         for phrase in self.keyword_builder:
             print('-----------------')
             print(phrase)
-            phrase_score = 10
+            phrase_score = 150
             try:
                 first_page = self.start_request(phrase)
                 #print(first_page)

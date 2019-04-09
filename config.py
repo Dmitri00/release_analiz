@@ -1,6 +1,6 @@
 
-google_search_url = 'https://www.google.com/search?{}'\
-baidu_search_url
+google_search_url = 'https://www.google.com/search?{}'
+
 
 #blacklist:
 #engines:

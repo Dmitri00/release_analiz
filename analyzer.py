@@ -12,7 +12,7 @@ import re
 
 MAX_PAGE_SCORE = 10.0
 PAGE_NECESSARY_SCORE = 1.99
-PAGE_SUFFICIENT_SCORE = 7
+PAGE_SUFFICIENT_SCORE = 7.0
 PAGE_MAX_SCORE = 10.0 
 PAGE_HIT_SCORE = 1.0
 PAGE_TITLE_COST = 5.0
@@ -49,6 +49,7 @@ class Page:
         self.url = url
         self.html = html
         self.txt_cleaner = HtmlCleaner()
+        success = False
         for i in range(3):
             try:
                 readable_article = readability.Document(html)
@@ -56,12 +57,14 @@ class Page:
                 self.article_html = self.txt_cleaner.clean_html(article_html)
                 self.article_text = self.article_html
                 self.title = title
+                success = True
             except Exception as e:
                 print(e)
-                print('Произошла ошибка при обработке страницы. Будет обработан только URL-адрес страницы.')
                 self.title = try_extract_title(url)
                 self.article_html = None
                 self.article_text = None
+        if not success:
+             print('Произошла ошибка при обработке страницы. Будет обработан только URL-адрес страницы.')
 
 class ReferencePage:
     def __init__(self,title,text,url,hero='',institute='',doi=''):
@@ -117,18 +120,19 @@ class Analyzer:
                     page.article_text = None
                     self.metadata[page.url] = page
 
-        return score
+        return float(score)
         
 
 
     def compute_score(self,page):
         score = 0.0
-        score = self.results.hit(page.url)
+        
         if score >= PAGE_SUFFICIENT_SCORE:
             return score
         if 'pdf' in page.url:
-            assert score != 0.0
+            #assert score != 0.0
             return score
+        score = self.results.hit(page.url)
         if page.title == None:
             return score
         if self.direct_link_rule(page):
@@ -153,7 +157,7 @@ class Analyzer:
             return score
         cite_score = PAGE_TITLE_COST*text_similarity + PAGE_TITLE_COST*title_similarity
         score = self.results.add_score(page.url,cite_score)
-        print('Оценка близости текста {}'.format(cite_score))
+        #print('Оценка близости текста {}'.format(cite_score))
 
         if self.hero_institute_rule(page):
             score = self.results.add_score(page.url,cite_score)

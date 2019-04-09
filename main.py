@@ -54,11 +54,11 @@ def main():
     print('Поиск завершен. Найдены следующие ссылки:')
 
     header = 'Название страницы, Оценка точности, URL-адрес \n'
-    with open(output_file,'wb') as f:
-        f.write(header.encode('utf-8'))
+    with open(output_file,'w',encoding='utf-8') as f:
+        f.write(header)
         print(header)
         for line in results:
-            f.write(line.encode('utf-8'))
+            f.write(line)
             print(line)
 
     print('Все ссылки сохранены в файле {}'.format(output_file))
@@ -66,10 +66,10 @@ def main():
 
     
 def run(article_title,article_text,article_url,article_doi,hero,institute,release_date,search_depth=2):
-    searcher = Searcher(article_text, search_depth=search_depth)
+    searcher = Searcher(article_text,hero,institute, search_depth=search_depth)
     dwld = Downloader()
     analyzer = Analyzer(article_title,article_text,article_url,article_doi,hero,institute)
-    result_count = 150
+    result_count = 10
     i = 0
     for url in searcher.gen():
         if url == '' or url == None:
@@ -85,7 +85,7 @@ def run(article_title,article_text,article_url,article_doi,hero,institute,releas
             page = dwld.download(url,default_agent=True, timeout=15)
         print('Оценка близости текста - {:.2}/10'.format(analyzer.analyze(url,page)))
     results = sorted(analyzer.get_results(),key=lambda x: x[2], reverse=True)
-    line_fmt = '{score:2.2},{title:},{url:}\n'
+    line_fmt = '{score:2.2f},{title:},{url:}\n'
     lines = []
     i=0
     for url,title,score in results:
