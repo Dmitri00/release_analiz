@@ -42,11 +42,11 @@ def main():
     timer.wait(3)
     for key,value in config['MAIN'].items():
         print(fields_definitions[key])
-        timer.wait(3)
+        timer.wait(0.2)
         print(value)
-        if not accept_key():
-            print('Завершение работы.')
-            return
+    if not accept_key():
+        print('Завершение работы.')
+        return
     print('Запуск поискового бота')
     timer.wait(3)
     results = run(**args)
