@@ -28,20 +28,30 @@ class ResultDict(dict):
         self.max_score = PAGE_MAX_SCORE
 
     def hit(self,url):
-        if url in self.keys():
-            self[url] = min(self[url]+self.hit_score, self.max_score)
+        parsed_url = urlparse.urlparse(url)
+        if parsed_url in self.keys():
+            self[parsed_url] = min(self[parsed_url]+self.hit_score, self.max_score)
         else:
-            self[url] = 1
-        return self[url]
+            self[parsed_url] = 1
+        return self[parsed_url]
     def add_score(self, url, score):
-        self[url] = min(self[url]+score,self.max_score)
-        return self[url]
+        parsed_url = urlparse.urlparse(url)
+        self[parsed_url] = min(self[parsed_url]+score,self.max_score)
+        return self[parsed_url]
     def filter(self):
         results = []
-        for url, score in self.items():
+        for parsed_url, score in self.items():
             if score >= self.filter_score:
-                results.append((url,score))
+                unparsed_url = urlparse.urlunparse(parsed_url)
+                results.append((unparsed_url,score))
         return results
+    def __contains__(self,url):
+        parsed_url = urlparse.urlparse(url)
+        # clear unimportant fields
+        parsed_url.query=''
+        parsed_url.fragment=''
+        return dict.__contains__(self,parsed_url)
+
 
 
 class Page:
