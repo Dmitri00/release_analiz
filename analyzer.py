@@ -20,24 +20,30 @@ PAGE_TEXT_COST = 5.0
 PAGE_DIRECTLINK_COST = 10.0
 PAGE_DOI_COST = 10.0
 
+
 class ResultDict(dict):
     def __init__(self):
         dict.__init__(self)
         self.hit_score = PAGE_HIT_SCORE 
         self.filter_score = PAGE_NECESSARY_SCORE
         self.max_score = PAGE_MAX_SCORE
+    def urlcmp(self,a,b):
+        return a.netloc == b.netloc and a.path == b.path
 
+    def parse_url(self,url):
+        parsed_url = urlparse.urlparse(url)
+        return parsed_url
     def hit(self,url):
-        parsed_url = urlparse.urlparse(url)
-        if parsed_url in self.keys():
-            self[parsed_url] = min(self[parsed_url]+self.hit_score, self.max_score)
+        parsed_url = self.parse_url(url)
+        if parsed_url in dict.keys(self):
+            dict.__setitem__(self,parsed_url, min(dict.__getitem__(self,parsed_url)+self.hit_score, self.max_score))
         else:
-            self[parsed_url] = 1
-        return self[parsed_url]
+            dict.__setitem__(self,parsed_url, 1)
+        return dict.__getitem__(self,parsed_url)
     def add_score(self, url, score):
-        parsed_url = urlparse.urlparse(url)
-        self[parsed_url] = min(self[parsed_url]+score,self.max_score)
-        return self[parsed_url]
+        parsed_url = self.parse_url(url)
+        dict.__setitem__(self,parsed_url, min(dict.__getitem__(self,parsed_url)+score,self.max_score))
+        return dict.__getitem__(self,parsed_url)
     def filter(self):
         results = []
         for parsed_url, score in self.items():
@@ -46,11 +52,18 @@ class ResultDict(dict):
                 results.append((unparsed_url,score))
         return results
     def __contains__(self,url):
-        parsed_url = urlparse.urlparse(url)
+        parsed_url = self.parse_url(url)
         # clear unimportant fields
-        parsed_url.query=''
-        parsed_url.fragment=''
+        contains = False
+        for url in self.keys():
+            if self.urlcmp(parsed_url,url) == True:
+                contains = True
+                break
+        return contains
         return dict.__contains__(self,parsed_url)
+    def __getitem__(self,url):
+        parsed_url = urlparse.urlparse(url)
+        return dict.__getitem__(self,parsed_url)
 
 
 
@@ -86,6 +99,7 @@ class ReferencePage:
         self.doi = doi
     
 def clean_url(url):
+    return url
     assert url.startswith('http')
     return url.split(':')[1] 
 def try_extract_title(url):
