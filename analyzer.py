@@ -26,12 +26,14 @@ class ResultDict(dict):
         self.hit_score = PAGE_HIT_SCORE 
         self.filter_score = PAGE_NECESSARY_SCORE
         self.max_score = PAGE_MAX_SCORE
+        self.texts = {}
 
-    def hit(self,url):
+    def hit(self,url, text):
         if url in self.keys():
             self[url] = min(self[url]+self.hit_score, self.max_score)
         else:
             self[url] = 1
+            self.texts[url] = text
         return self[url]
     def add_score(self, url, score):
         self[url] = min(self[url]+score,self.max_score)
@@ -42,6 +44,30 @@ class ResultDict(dict):
             if score >= self.filter_score:
                 results.append((url,score))
         return results
+    def contains(self,url,text):
+        parsed_1url = urlparse.urlparse(url)
+        netloc1 = parsed_1url.netloc
+        hash1 = hash(netloc1+text)
+        contains = False
+        for url in self.keys():
+            parsed_2url = urlparse.urlparse(url)
+            netloc2 = parsed_2url.netloc
+            hash2 = hash(netloc2 + self.texts[url])
+            if hash1 == hash2:
+                contains = True
+                break
+        return contains
+    def get_dublicate(self,url,text):
+        parsed_1url = urlparse.urlparse(url)
+        netloc1 = parsed_1url.netloc
+        hash1 = hash(netloc1+text)
+        contains = False
+        for url in self.keys():
+            parsed_2url = urlparse.urlparse(url)
+            netloc2 = parsed_2url.netloc
+            hash2 = hash(netloc2 + self.texts[url])
+            if hash1 == hash2:
+                return url
 
 
 class Page:
@@ -62,7 +88,7 @@ class Page:
                 print(e)
                 self.title = try_extract_title(url)
                 self.article_html = None
-                self.article_text = None
+                self.article_text = ''
         if not success:
              print('Произошла ошибка при обработке страницы. Будет обработан только URL-адрес страницы.')
 
@@ -76,8 +102,12 @@ class ReferencePage:
         self.doi = doi
     
 def clean_url(url):
+    return url
     assert url.startswith('http')
     return url.split(':')[1] 
+def restore_url(url):
+    return url
+    return 'http:'+url
 def try_extract_title(url):
     path = urlparse.urlparse(url).path.rsplit('/',1)[-1]
     path = path.replace(' ','')
@@ -105,10 +135,14 @@ class Analyzer:
         if url in self.blacklist:
             return score
 
-        if url in self.results and self.results[url] > PAGE_SUFFICIENT_SCORE:
+        page = Page(url,html)
+        dublicate_url = self.results.get_dublicate(url,page.article_text)
+        if dublicate_url != None:
+            url = dublicate_url
+            assert url in self.results
+        if  url in self.results and self.results[url] > PAGE_SUFFICIENT_SCORE:
             return self.results[url]
 
-        page = Page(url,html)
         if page.article_text != None and len(page.article_text) <= 50000 or 'pdf' in url :
             
             score = self.compute_score(page)
@@ -132,7 +166,7 @@ class Analyzer:
         if 'pdf' in page.url:
             #assert score != 0.0
             return score
-        score = self.results.hit(page.url)
+        score = self.results.hit(page.url,page.article_text)
         if page.title == None:
             return score
         if self.direct_link_rule(page):
@@ -242,7 +276,7 @@ class Analyzer:
             try:
                 page = self.metadata[url]
 
-                results.append(('http:'+url,page.title,float(score)))
+                results.append((restore_url(url),page.title,float(score)))
             except KeyError:
                 pass
 
