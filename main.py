@@ -39,7 +39,7 @@ def main():
     print('Внимание! Проверьте правильность входных данных:')
     timer = threading.Event()
     timer.clear()
-    timer.wait(3)
+    timer.wait(1)
     for key,value in config['MAIN'].items():
         print(fields_definitions[key])
         timer.wait(0.2)
@@ -79,11 +79,11 @@ def run(article_title,article_text,article_url,article_doi,hero,institute,releas
         i+=1
         print('Обнаружена новая ссылка:\n{}\nОбработка...'.format(url))
         if 'pdf' in url:
-            print('Обработка PDF-документов не поддерживается. Документ будет добавлен для проверки')
+            print('Обработка PDF-документов не поддерживается. Документ не будет проверяться')
             page = None
         else:
             page = dwld.download(url,default_agent=True, timeout=15)
-        print('Оценка близости текста - {:.2}/10'.format(analyzer.analyze(url,page)))
+            print('Оценка близости текста - {:.2}/10'.format(analyzer.analyze(url,page)))
     results = sorted(analyzer.get_results(),key=lambda x: x[2], reverse=True)
     line_fmt = '{score:2.2f},{title:},{url:}\n'
     lines = []
