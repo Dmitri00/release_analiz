@@ -1,5 +1,1 @@
-Example Package
-
-This is a simple example package. You can use
-[Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
-to write your content.
+Скрипт для автоматического поиска ссыок на статьи по выходным данным и тексту
