@@ -11,7 +11,7 @@ nltk==3.4
 numpy==1.16.2
 pex==1.6.3
 pkginfo==1.5.0.1
-Pygments==2.3.1
+Pygments==2.7.4
 readability-lxml==0.7
 readme-renderer==24.0
 requests==2.21.0
