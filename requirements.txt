@@ -6,7 +6,7 @@ chardet==3.0.4
 cssselect==1.0.3
 docutils==0.14
 idna==2.8
-lxml==4.3.2
+lxml==4.6.3
 nltk==3.4
 numpy==1.16.2
 pex==1.6.3
